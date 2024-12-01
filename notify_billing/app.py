@@ -1,10 +1,23 @@
-import os
 import boto3
 import requests
 from datetime import datetime, timedelta, date
 
-LINE_ACCESS_TOKEN = os.environ["LINE_ACCESS_TOKEN"]
-LINE_USER_ID = os.environ["LINE_USER_ID"]
+
+def get_secret(secret_name):
+    client = boto3.client("secretsmanager")
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    except Exception as e:
+        print(f"Error retrieving secret {secret_name}: {e}")
+        raise e
+    else:
+        secret = get_secret_value_response["SecretString"]
+        return secret
+
+
+# Secrets Managerからシークレットを取得
+LINE_ACCESS_TOKEN = get_secret("LINE_ACCESS_TOKEN")
+LINE_USER_ID = get_secret("LINE_USER_ID")
 
 
 def lambda_handler(event, context) -> None:
