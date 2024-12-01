@@ -4,6 +4,7 @@ import requests
 from datetime import datetime, timedelta, date
 
 LINE_ACCESS_TOKEN = os.environ["LINE_ACCESS_TOKEN"]
+LINE_USER_ID = os.environ["LINE_USER_ID"]
 
 
 def lambda_handler(event, context) -> None:
@@ -84,16 +85,24 @@ def get_message(total_billing: dict, service_billings: list) -> tuple[str, str]:
 
 
 def post_line(title: str, detail: str) -> None:
-    url = "https://notify-api.line.me/api/notify"
-    headers = {"Authorization": "Bearer %s" % LINE_ACCESS_TOKEN}
-    data = {"message": f"{title}\n\n{detail}"}
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer %s" % LINE_ACCESS_TOKEN,
+    }
+    data = {
+        "to": LINE_USER_ID,
+        "messages": [{"type": "text", "text": title + "\n" + detail}],
+    }
 
     try:
-        response = requests.post(url, headers=headers, data=data)
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(e)
     else:
         print(response.status_code)
+        print(response.text)
 
 
 def get_total_cost_date_range() -> tuple[str, str]:

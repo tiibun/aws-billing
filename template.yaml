@@ -16,6 +16,12 @@ Resources:
       Runtime: python3.12
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          LINE_ACCESS_TOKEN: !Sub "{{resolve:secretsmanager:LINE_ACCESS_TOKEN:SecretString}}"
+          LINE_USER_ID: !Sub "{{resolve:secretsmanager:LINE_USER_ID:SecretString}}"
+      Policies:
+        - CostExplorerReadOnlyPolicy: {}
       Events:
         NotifyBillingFunctionNotifyLine:
           Type: ScheduleV2
