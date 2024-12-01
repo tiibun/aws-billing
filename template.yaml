@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Notify Line every day of AWS 
+
+Globals:
+  Function:
+    Timeout: 10
+
+Resources:
+  NotifyBillingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: notify_billing
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        NotifyBillingFunctionNotifyLine:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: cron(0 9 * * ? *)
+            ScheduleExpressionTimezone: Asia/Tokyo

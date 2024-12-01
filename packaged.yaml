@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Notify Line every day of AWS billing
+Globals:
+  Function:
+    Timeout: 10
+Parameters:
+  LineAccessToken:
+    Type: String
+    Default: hoge
+Resources:
+  BillingIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            - ce:GetCostAndUsage
+            Resource: '*'
+        PolicyName: NotifyLineToBillingLambdaPolicy
+    Metadata:
+      SamResourceId: BillingIamRole
+  NotifyBillingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-1dlbs90e9cu63/e00f68ad1de524ff3576555fc8a14172
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Environment:
+        Variables:
+          LINE_ACCESS_TOKEN:
+            Ref: LineAccessToken
+      Role:
+        Fn::GetAtt:
+        - BillingIamRole
+        - Arn
+      Events:
+        NotifyLine:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 0 * * ? *)
+    Metadata:
+      SamResourceId: NotifyBillingFunction
+Outputs:
+  NotifyBillingFunction:
+    Description: Notify Billing Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - NotifyBillingFunction
+      - Arn
+  BillingIamRole:
+    Description: Implicit IAM Role created for Notify Billing function
+    Value:
+      Fn::GetAtt:
+      - BillingIamRole
+      - Arn
