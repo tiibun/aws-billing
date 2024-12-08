@@ -4,18 +4,17 @@ from datetime import datetime, timedelta, date
 
 
 def get_secret(secret_name):
-    client = boto3.client("secretsmanager")
+    client = boto3.client("ssm")
     try:
-        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+        response = client.get_parameter(Name=secret_name, WithDecryption=True)
     except Exception as e:
-        print(f"Error retrieving secret {secret_name}: {e}")
+        print(f"Error retrieving parameter {secret_name}: {e}")
         raise e
     else:
-        secret = get_secret_value_response["SecretString"]
-        return secret
+        return response["Parameter"]["Value"]
 
 
-# Secrets Managerからシークレットを取得
+# シークレットを取得
 LINE_ACCESS_TOKEN = get_secret("LINE_ACCESS_TOKEN")
 LINE_USER_ID = get_secret("LINE_USER_ID")
 
